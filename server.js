@@ -30,15 +30,17 @@ async function checkClasses() {
 
 
         let results = [];
-        for (let i = 0; i < matches.length; i++) {
+        for (let i = 0; i < matches.length; i ++) {
             // split matches by "<br>";
             let lop = matches[i].split("<br>");
-            if (lop[1].toLowerCase().includes("toán") && lop[1].includes("7") && lop[2].toLowerCase().includes("online")) {
+            if (lop[1].toLowerCase().includes("toán") && lop[1].includes("7")) {
                 results.push(lop.join("\n"));
             }
         }
+        console.log(results.length);
+
         if (results.length > 0) {
-            sendEmail(results.join("\n\n"));
+            sendEmail(results.join("\n"));
         }
     } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
@@ -72,4 +74,5 @@ app.get("/", (req, res) => {
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server chạy trên http://localhost:${PORT}`));
 
-setInterval(checkClasses, 30 * 1000);
+// Kiểm tra lớp học mỗi 5 phút
+setInterval(checkClasses, 5 * 60 * 1000);
