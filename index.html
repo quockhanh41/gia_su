@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tra Cứu Lớp Học</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        max-width: 600px;
+        margin: auto;
+        padding: 20px;
+      }
+      input,
+      button {
+        display: block;
+        width: 100%;
+        margin: 10px 0;
+        padding: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Nhập thông tin tìm kiếm</h2>
+      <input type="text" id="maLop" placeholder="Mã lớp" />
+      <input type="text" id="tenLop" placeholder="Tên lớp" />
+      <input type="text" id="diaChi" placeholder="Địa chỉ" />
+      <input type="text" id="thoiGian" placeholder="Thời gian" />
+      <input type="text" id="luong" placeholder="Lương" />
+      <input type="text" id="gioiTinh" placeholder="Giới tính" />
+      <input type="text" id="phi" placeholder="Phí" />
+      <button onclick="timKiemLop()">Tìm kiếm</button>
+      <div id="ketQua"></div>
+    </div>
+
+    <script>
+      async function timKiemLop() {
+        const response = await fetch(
+          "https://docs.google.com/spreadsheets/u/0/d/e/2PACX-1vSmU6kCer_KFEQzc-HYRLjMEFgO0B2FM3iSa3aXGwqNSQxYhQGJBmzu76Tilx2_jCYIO4k9EpVqOvr1/pubhtml/sheet?headers=false&gid=0"
+        );
+        const text = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "text/html");
+        const cells = doc.querySelectorAll("td");
+        let results = [];
+
+        const maLop = document.getElementById("maLop");
+        // tenLop is a list of words
+        const tenLop = document.getElementById("tenLop").value.split(" ");
+        const diaChi = document.getElementById("diaChi").value;
+        const thoiGian = document.getElementById("thoiGian").value;
+        const luong = document.getElementById("luong").value;
+        const gioiTinh = document.getElementById("gioiTinh").value;
+        const phi = document.getElementById("phi").value;
+        
+        cells.forEach((cell) => {
+          const lop = cell.innerHTML.split("<br>");
+        // when check tenLop, check all words in tenLop
+          if (
+            (!maLop.value || lop[0].toLowerCase().includes(maLop.value.toLowerCase())) &&
+            (!tenLop.length || tenLop.every((word) => lop[1].toLowerCase().includes(word.toLowerCase()))) &&
+            (!diaChi || lop[2].toLowerCase().includes(diaChi.toLowerCase())) &&
+            (!thoiGian || lop[3].toLowerCase().includes(thoiGian.toLowerCase())) &&
+            (!luong || lop[4].toLowerCase().includes(luong.toLowerCase())) &&
+            (!gioiTinh || lop[5].toLowerCase().includes(gioiTinh.toLowerCase())) &&
+            (!phi || lop[6].toLowerCase().includes(phi.toLowerCase()))
+          ) {
+            results.push(lop.join("<br>"));
+            results.push("<br>");
+          }
+          
+        });
+
+        document.getElementById("ketQua").innerHTML = results.length
+          ? results.join("<br>")
+          : "Không tìm thấy lớp phù hợp";
+      }
+    </script>
+  </body>
+</html>
