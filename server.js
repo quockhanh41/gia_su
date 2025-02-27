@@ -88,5 +88,5 @@ app.get("/clear", (req, res) => {
 const PORT = 3000;
 app.listen(PORT, () => console.log(`Server chạy trên http://localhost:${PORT}`));
 
-// Kiểm tra lớp học mỗi 1 phút
-setInterval(checkClasses,  60 * 1000);
+// Kiểm tra lớp học mỗi 5 giây
+setInterval(checkClasses,  5 * 1000);
