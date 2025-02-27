@@ -48,10 +48,10 @@ async function checkClasses() {
             }
         }
         if (mathClass.length > 0) {
-            sendEmail(mathClass.join("\n"), "thuy271019@gmail.com");
+            sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
         }
         if (englishClass.length > 0) {
-            sendEmail(englishClass.join("\n"), "quockhanh4104.kn@gmail.com");
+            sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
         }
     } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
@@ -76,6 +76,12 @@ function sendEmail(content, email) {
 // Endpoint để phục vụ trang HTML
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
+});
+// Endpoint to clear classID array
+app.get("/clear", (req, res) => {
+    mathClassID = [];
+    englishClassID = [];
+    res.send("Đã xóa danh sách lớp học!");
 });
 
 // Chạy server
