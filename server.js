@@ -18,6 +18,9 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+let mathClassID = [];
+let englishClassID = [];
+
 // Hàm kiểm tra lớp học và gửi email nếu tìm thấy lớp phù hợp
 async function checkClasses() {
     try {
@@ -28,19 +31,27 @@ async function checkClasses() {
         const regex = /<td.*?>(.*?)<\/td>/g;
         const matches = [...html.matchAll(regex)].map((m) => m[1]);
 
-
-        let results = [];
-        for (let i = 0; i < matches.length; i ++) {
+        let mathClass = [];
+        let englishClass = [];
+        for (let i = 0; i < matches.length; i++) {
             // split matches by "<br>";
             let lop = matches[i].split("<br>");
-            if (lop[1].toLowerCase().includes("toán") && lop[1].includes("7")) {
-                results.push(lop.join("\n"));
+            //  extract class ID like GH2714 from Mã lớp:GH2714 of lop[0]
+            let classID = lop[0].split(":")[1].trim();
+            if (lop[1].toLowerCase().includes("toán") && lop[1].includes("7") && lop[2].toLowerCase().includes("online") && !mathClassID.includes(classID)) {
+                mathClass.push(lop.join("\n"));
+                mathClassID.push(classID);
+            }
+            if (lop[1].toLowerCase().includes("anh") && lop[2].toLowerCase().includes("online") && !englishClassID.includes(classID)) {
+                englishClass.push(lop.join("\n"));
+                englishClassID.push(classID);
             }
         }
-        console.log(results.length);
-
-        if (results.length > 0) {
-            sendEmail(results.join("\n"));
+        if (mathClass.length > 0) {
+            sendEmail(mathClass.join("\n"), "thuy271019@gmail.com");
+        }
+        if (englishClass.length > 0) {
+            sendEmail(englishClass.join("\n"), "quockhanh4104.kn@gmail.com");
         }
     } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
@@ -48,12 +59,9 @@ async function checkClasses() {
 }
 
 // Hàm gửi email
-function sendEmail(content) {
+function sendEmail(content, email) {
     const mailOptions = {
-        from: "cineseats@gmail.com",
-        to: "quockhanh4104.kn@gmail.com",
-        subject: "Tìm thấy lớp phù hợp!",
-        text: `Đã tìm thấy lớp:\n${content}`,
+        from: "cineseats@gmail.com", to: email, subject: "Tìm thấy lớp phù hợp!", text: `Đã tìm thấy lớp:\n${content}`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
