@@ -60,12 +60,12 @@ async function checkClasses() {
         }
 
         if (mathClass.length > 0) {
-            sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
-            // sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+            // sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
+            sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
         }
         if (englishClass.length > 0) {
-            sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
-            // sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+            // sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
+            sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
         }
     } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
