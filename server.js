@@ -103,7 +103,7 @@ app.get("/clear", (req, res) => {
 });
 
 // Chạy server
-const PORT = process.env.PORT || 3000;
+const PORT =  3000;
 app.listen(PORT, () => console.log(`Server chạy trên http://localhost:${PORT}`));
 
 // Kiểm tra lớp học mỗi 5 giây
