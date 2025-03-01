@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
@@ -8,18 +9,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const SHEET_URL = "https://docs.google.com/spreadsheets/u/0/d/e/2PACX-1vSmU6kCer_KFEQzc-HYRLjMEFgO0B2FM3iSa3aXGwqNSQxYhQGJBmzu76Tilx2_jCYIO4k9EpVqOvr1/pubhtml/sheet?headers=false&gid=0";
+const SHEET_URL =
+    "https://docs.google.com/spreadsheets/u/0/d/e/2PACX-1vSmU6kCer_KFEQzc-HYRLjMEFgO0B2FM3iSa3aXGwqNSQxYhQGJBmzu76Tilx2_jCYIO4k9EpVqOvr1/pubhtml/sheet?headers=false&gid=0";
 
 // Cấu hình email sender
 const transporter = nodemailer.createTransport({
-    service: "gmail", auth: {
-        user: "cineseats@gmail.com", // Thay bằng email của bạn
-        pass: "wgidjybtfbxsjqlh", // Thay bằng mật khẩu ứng dụng
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER, // Lấy từ biến môi trường
+        pass: process.env.EMAIL_PASS, // Lấy từ biến môi trường
     },
 });
 
-let mathClassID = [];
-let englishClassID = [];
+const mathClassIDSet = new Set();
+const englishClassIDSet = new Set();
 
 // Hàm kiểm tra lớp học và gửi email nếu tìm thấy lớp phù hợp
 async function checkClasses() {
@@ -33,20 +36,28 @@ async function checkClasses() {
 
         let mathClass = [];
         let englishClass = [];
-        for (let i = 0; i < matches.length; i++) {
-            // split matches by "<br>";
-            let lop = matches[i].split("<br>");
-            //  extract class ID like GH2714 from Mã lớp:GH2714 of lop[0]
-            let classID = lop[0].split(":")[1].trim();
-            if (lop[1].toLowerCase().match(/toán.*[7654321]/) && lop[2].toLowerCase().includes("online") && !mathClassID.includes(classID)) {
-                mathClass.push(lop.join("\n"));
-                mathClassID.push(classID);
-            }
-            if (lop[1].toLowerCase().includes("anh") && lop[2].toLowerCase().includes("online") && !englishClassID.includes(classID)) {
-                englishClass.push(lop.join("\n"));
-                englishClassID.push(classID);
+
+        for (const match of matches) {
+            const lop = match.split("<br>");
+            if (lop.length < 3) continue; // Tránh lỗi khi dữ liệu không đủ
+
+            const classID = lop[0].split(":")[1]?.trim();
+            if (!classID) continue;
+
+            const subject = lop[1].toLowerCase();
+            const isOnline = lop[2].toLowerCase().includes("online");
+
+            if (isOnline) {
+                if (/toán.*[76]/.test(subject) && !mathClassIDSet.has(classID)) {
+                    mathClass.push(lop.join("\n"));
+                    mathClassIDSet.add(classID);
+                } else if (subject.includes("anh") && !englishClassIDSet.has(classID)) {
+                    englishClass.push(lop.join("\n"));
+                    englishClassIDSet.add(classID);
+                }
             }
         }
+
         if (mathClass.length > 0) {
             sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
         }
@@ -61,14 +72,17 @@ async function checkClasses() {
 // Hàm gửi email
 function sendEmail(content, email) {
     const mailOptions = {
-        from: "cineseats@gmail.com", to: email, subject: "Tìm thấy lớp phù hợp!", text: `Đã tìm thấy lớp:\n${content}`,
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Tìm thấy lớp phù hợp!",
+        text: `Đã tìm thấy lớp:\n${content}`,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
             console.error("Lỗi gửi email:", error);
         } else {
-            console.log("Email đã gửi:", info.response);
+            console.log(`Email đã gửi đến ${email}:`, info.response);
         }
     });
 }
@@ -77,15 +91,16 @@ function sendEmail(content, email) {
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
-// Endpoint to clear classID array
+
+// Endpoint để reset danh sách lớp học
 app.get("/clear", (req, res) => {
-    mathClassID = [];
-    englishClassID = [];
+    mathClassIDSet.clear();
+    englishClassIDSet.clear();
     res.send("Đã xóa danh sách lớp học!");
 });
 
 // Chạy server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server chạy trên http://localhost:${PORT}`));
 
 // Kiểm tra lớp học mỗi 5 giây
