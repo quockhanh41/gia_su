@@ -38,7 +38,7 @@ async function checkClasses() {
             let lop = matches[i].split("<br>");
             //  extract class ID like GH2714 from Mã lớp:GH2714 of lop[0]
             let classID = lop[0].split(":")[1].trim();
-            if (lop[1].toLowerCase().includes("toán") && lop[1].includes("7") && lop[2].toLowerCase().includes("online") && !mathClassID.includes(classID)) {
+            if (lop[1].toLowerCase().match(/toán.*[7654321]/) && lop[2].toLowerCase().includes("online") && !mathClassID.includes(classID)) {
                 mathClass.push(lop.join("\n"));
                 mathClassID.push(classID);
             }
@@ -89,4 +89,4 @@ const PORT = 3000;
 app.listen(PORT, () => console.log(`Server chạy trên http://localhost:${PORT}`));
 
 // Kiểm tra lớp học mỗi 5 giây
-setInterval(checkClasses,  5 * 1000);
+setInterval(checkClasses, 5 * 1000);
