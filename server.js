@@ -48,10 +48,11 @@ async function checkClasses() {
             const isOnline = lop[2].toLowerCase().includes("online");
 
             if (isOnline) {
-                if (/toán.*[76]/.test(subject) && !mathClassIDSet.has(classID)) {
+                if (subject.includes("toán") && (subject.includes("6") || subject.includes("7")) && !mathClassIDSet.has(classID)) {
                     mathClass.push(lop.join("\n"));
                     mathClassIDSet.add(classID);
-                } else if (subject.includes("anh") && !englishClassIDSet.has(classID)) {
+                }
+                if (subject.includes("anh") && !englishClassIDSet.has(classID)) {
                     englishClass.push(lop.join("\n"));
                     englishClassIDSet.add(classID);
                 }
@@ -60,9 +61,11 @@ async function checkClasses() {
 
         if (mathClass.length > 0) {
             sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
+            // sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
         }
         if (englishClass.length > 0) {
             sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
+            // sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
         }
     } catch (error) {
         console.error("Lỗi khi lấy dữ liệu:", error);
@@ -75,7 +78,7 @@ function sendEmail(content, email) {
         from: process.env.EMAIL_USER,
         to: email,
         subject: "Tìm thấy lớp phù hợp!",
-        text: `Đã tìm thấy lớp:\n${content}`,
+        text: content,
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
