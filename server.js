@@ -9,12 +9,12 @@ const dom = require("xmldom").DOMParser;
 
 // Tắt các cảnh báo xmldom
 const parser = new dom({
-    locator: {},
-    errorHandler: {
-        warning: function() {},
-        error: function() {},
-        fatalError: function() {}
-    }
+  locator: {},
+  errorHandler: {
+    warning: function () {},
+    error: function () {},
+    fatalError: function () {},
+  },
 });
 
 class ClassInfo {
@@ -54,10 +54,10 @@ async function checkClasses() {
   try {
     const response = await axios.get(SHEET_URL);
     const html = response.data;
-    
+
     // Parse HTML thành DOM với parser đã cấu hình
     const doc = parser.parseFromString(html);
-    
+
     // Sử dụng XPath để lấy tất cả các đoạn văn bản
     const paragraphs = xpath.select("//p/span/text()", doc);
 
@@ -107,8 +107,9 @@ async function checkClasses() {
           mathClassIDSet.add(classID);
         }
         if (
-          ((subject.includes("anh") && subject.includes("lớp 12")) || (subject.includes("tiếng anh giao tiếp")) &&
-            !englishClassIDSet.has(classID))
+          ((subject.includes("anh") && subject.includes("lớp 12")) ||
+            subject.includes("tiếng anh giao tiếp")) &&
+          !englishClassIDSet.has(classID)
         ) {
           englishClass.push(classInfo.join("\n"));
           englishClassIDSet.add(classID);
