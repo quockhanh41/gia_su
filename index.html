@@ -1,85 +1,290 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Tra Cứu Lớp Học</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tìm kiếm lớp học</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 20px;
-        }
-
-        input,
-        button {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 10px;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background-color: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 40px;
+        font-size: 2.2em;
+      }
+      .form-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      .form-group {
+        flex: 1;
+        margin-bottom: 0;
+      }
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #34495e;
+        font-weight: 600;
+        font-size: 0.95em;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+        font-size: 0.95em;
+      }
+      input:focus {
+        outline: none;
+        border-color: #3498db;
+      }
+      button {
+        background-color: #3498db;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 1.1em;
+        font-weight: 600;
+        transition: background-color 0.3s;
+        margin-top: 10px;
+      }
+      button:hover {
+        background-color: #2980b9;
+      }
+      #results {
+        margin-top: 30px;
+      }
+      .class-item {
+        background-color: white;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid #3498db;
+        transition: transform 0.3s;
+      }
+      .class-item:hover {
+        transform: translateY(-2px);
+      }
+      .class-item.online {
+        border-left-color: #2ecc71;
+      }
+      .class-item.offline {
+        border-left-color: #e74c3c;
+      }
+      .class-info {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .class-info p {
+        margin: 0;
+        /* padding: 10px; */
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        display: flex;
+        /* justify-content: space-between; */
+        align-items: center;
+      }
+      .class-info strong {
+        color: #2c3e50;
+        min-width: 120px;
+      }
+      .class-info span {
+        color: #34495e;
+        text-align: right;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        font-weight: bold;
+        margin-left: 10px;
+      }
+      .status-online {
+        background-color: #2ecc71;
+        color: white;
+      }
+      .status-offline {
+        background-color: #e74c3c;
+        color: white;
+      }
     </style>
-</head>
-<body>
-<div class="container">
-    <h2>Nhập thông tin tìm kiếm</h2>
-    <input type="text" id="maLop" placeholder="Mã lớp"/>
-    <input type="text" id="tenLop" placeholder="Tên lớp"/>
-    <input type="text" id="diaChi" placeholder="Địa chỉ"/>
-    <input type="text" id="thoiGian" placeholder="Thời gian"/>
-    <input type="text" id="luong" placeholder="Lương"/>
-    <input type="text" id="gioiTinh" placeholder="Giới tính"/>
-    <input type="text" id="phi" placeholder="Phí"/>
-    <button onclick="timKiemLop()">Tìm kiếm</button>
-    <div id="ketQua"></div>
-</div>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Tìm kiếm lớp học</h1>
+      <form id="searchForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="classID">Mã lớp</label>
+            <input
+              type="text"
+              id="classID"
+              name="classID"
+              placeholder="Nhập mã lớp"
+            />
+          </div>
+          <div class="form-group">
+            <label for="name">Tên lớp</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Nhập tên lớp"
+            />
+          </div>
+          <div class="form-group">
+            <label for="address">Địa chỉ</label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              placeholder="Nhập địa chỉ"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="schedule">Lịch học</label>
+            <input
+              type="text"
+              id="schedule"
+              name="schedule"
+              placeholder="Nhập lịch học"
+            />
+          </div>
+          <div class="form-group">
+            <label for="price">Học phí</label>
+            <input
+              type="text"
+              id="price"
+              name="price"
+              placeholder="Nhập học phí"
+            />
+          </div>
+          <div class="form-group">
+            <label for="condition">Điều kiện</label>
+            <input
+              type="text"
+              id="condition"
+              name="condition"
+              placeholder="Nhập điều kiện"
+            />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fee">Phí nhận lớp</label>
+            <input
+              type="text"
+              id="fee"
+              name="fee"
+              placeholder="Nhập phí nhận lớp"
+            />
+          </div>
+        </div>
+        <button type="submit">Tìm kiếm</button>
+      </form>
+      <div id="results"></div>
+    </div>
 
-<script>
-    async function timKiemLop() {
-        const response = await fetch(
-            "https://docs.google.com/spreadsheets/u/0/d/e/2PACX-1vSmU6kCer_KFEQzc-HYRLjMEFgO0B2FM3iSa3aXGwqNSQxYhQGJBmzu76Tilx2_jCYIO4k9EpVqOvr1/pubhtml/sheet?headers=false&gid=0"
-        );
-        const text = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(text, "text/html");
-        const cells = doc.querySelectorAll("td");
-        let results = [];
+    <script>
+      document
+        .getElementById("searchForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-        const maLop = document.getElementById("maLop");
-        // tenLop is a list of words
-        const tenLop = document.getElementById("tenLop").value.split(" ");
-        const diaChi = document.getElementById("diaChi").value;
-        const thoiGian = document.getElementById("thoiGian").value;
-        const luong = document.getElementById("luong").value;
-        const gioiTinh = document.getElementById("gioiTinh").value;
-        const phi = document.getElementById("phi").value;
+          const formData = {
+            classID: document.getElementById("classID").value.toLowerCase(),
+            name: document.getElementById("name").value.toLowerCase(),
+            address: document.getElementById("address").value.toLowerCase(),
+            schedule: document.getElementById("schedule").value.toLowerCase(),
+            price: document.getElementById("price").value.toLowerCase(),
+            condition: document.getElementById("condition").value.toLowerCase(),
+            fee: document.getElementById("fee").value.toLowerCase(),
+          };
 
-        cells.forEach((cell) => {
-            const lop = cell.innerHTML.split("<br>");
-            // when check tenLop, check all words in tenLop
-            if (
-                (!maLop.value || lop[0].toLowerCase().includes(maLop.value.toLowerCase())) &&
-                (!tenLop.length || tenLop.every((word) => lop[1].toLowerCase().includes(word.toLowerCase()))) &&
-                (!diaChi || diaChi.split(" ").every((word) => lop[2].toLowerCase().includes(word.toLowerCase()))) &&
-                (!thoiGian || thoiGian.split(" ").every((word) => lop[3].toLowerCase().includes(word.toLowerCase()))) &&
-                (!luong || luong.split(" ").every((word) => lop[4].toLowerCase().includes(word.toLowerCase()))) &&
-                (!gioiTinh || gioiTinh.split(" ").every((word) => lop[5].toLowerCase().includes(word.toLowerCase()))) &&
-                (!phi || phi.split(" ").every((word) => lop[6].toLowerCase().includes(word.toLowerCase())))
-            ) {
-                results.push(lop.join("<br>"));
-                results.push("<br>");
-            }
+          try {
+            const response = await fetch("http://localhost:3000/search", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formData),
+            });
 
+            const classes = await response.json();
+            displayResults(classes);
+          } catch (error) {
+            console.error("Lỗi:", error);
+            document.getElementById("results").innerHTML =
+              '<p style="color: red;">Có lỗi xảy ra khi tìm kiếm</p>';
+          }
         });
 
-        document.getElementById("ketQua").innerHTML = results.length
-            ? results.join("<br>")
-            : "Không tìm thấy lớp phù hợp";
-    }
-</script>
-</body>
+      function displayResults(classes) {
+        const resultsDiv = document.getElementById("results");
+
+        if (classes.length === 0) {
+          resultsDiv.innerHTML =
+            '<p style="text-align: center; color: #666;">Không tìm thấy lớp học phù hợp</p>';
+          return;
+        }
+
+        let html = `
+          <div style="display: flex; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: #2c3e50; margin: 0;">Kết quả tìm kiếm: </h2>
+            <span style="background-color: #3498db; color: white; padding: 5px 10px; border-radius: 4px; font-weight: bold;">
+              Tìm thấy ${classes.length} lớp
+            </span>
+          </div>
+        `;
+
+        classes.forEach((cls) => {
+          const isOnline = cls.address.includes("online");
+          const statusClass = isOnline ? "online" : "offline";
+          const statusText = isOnline ? "Online" : "Offline";
+          const statusBadgeClass = isOnline
+            ? "status-online"
+            : "status-offline";
+
+          html += `
+                    <div class="class-item ${statusClass}">
+                        <div class="class-info">
+                            <p><strong>Mã lớp:</strong> <span>${cls.classID}</span></p>
+                            <p><strong>Tên lớp:</strong> <span>${cls.name}</span></p> 
+                            <p><strong>Địa chỉ:</strong> <span>${cls.address}<span class="status-badge ${statusBadgeClass}">${statusText}</span></span></p>
+                            <p><strong>Lịch học:</strong> <span>${cls.schedule}</span></p>
+                            <p><strong>Học phí:</strong> <span>${cls.price}</span></p>
+                            <p><strong>Điều kiện:</strong> <span>${cls.condition}</span></p>
+                            <p><strong>Phí nhận lớp:</strong> <span>${cls.fee}</span></p>
+                        </div>
+                    </div>
+                `;
+        });
+
+        resultsDiv.innerHTML = html;
+      }
+    </script>
+  </body>
 </html>
