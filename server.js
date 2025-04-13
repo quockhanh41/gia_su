@@ -197,5 +197,5 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server chạy trên http://localhost:${PORT}`);
   // Kiểm tra lớp học mỗi 5 giây
-  setInterval(checkClasses, 5 * 1000);
+  setInterval(checkClasses, 30 * 1000);
 });
