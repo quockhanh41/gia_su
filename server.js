@@ -79,7 +79,7 @@ async function checkClasses() {
       const classInfo = matches.slice(i, i + 7);
       if (classInfo.length < 7) continue; // Bỏ qua nếu không đủ 7 dòng
 
-      const classID = classInfo[0].split(":")[1]?.trim();
+      const classID = classInfo[0].split(":")[1]?.trim().toLowerCase();
       if (!classID) continue;
 
       const subject = classInfo[1].toLowerCase();
@@ -122,12 +122,12 @@ async function checkClasses() {
     }
 
     if (mathClass.length > 0) {
-      sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
+      // sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
       // sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(mathClass.join("\n\n"));
     }
     if (englishClass.length > 0) {
-      sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
+      // sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
       // sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(englishClass.join("\n\n"));
     }
