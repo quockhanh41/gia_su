@@ -127,7 +127,7 @@ async function checkClasses() {
       // console.log(mathClass.join("\n\n"));
     }
     if (englishClass.length > 0) {
-      // sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
+      sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
       // sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(englishClass.join("\n\n"));
     }
