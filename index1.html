@@ -1,0 +1,226 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Food Recognition App Prototype</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.21.4/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    // Mock data for food recognition
+    const mockFoodData = {
+      dish: "Pho Bo",
+      ingredients: ["Beef", "Rice Noodles", "Onion", "Cilantro", "Fish Sauce"],
+      nutrition: { calories: 600, protein: 30, carbs: 70, fat: 15 },
+      allergens: ["Fish Sauce"],
+    };
+
+    const mockRecipes = [
+      { name: "Chicken Pho", ingredients: ["Chicken", "Rice Noodles", "Onion", "Cilantro"], safeForAllergies: true },
+      { name: "Vegetarian Pho", ingredients: ["Tofu", "Rice Noodles", "Mushrooms", "Cilantro"], safeForAllergies: true },
+    ];
+
+    // React Component for the App
+    const App = () => {
+      const [screen, setScreen] = React.useState("home");
+      const [userAllergies, setUserAllergies] = React.useState(["Seafood"]);
+      const [foodData, setFoodData] = React.useState(null);
+      const [selectedImage, setSelectedImage] = React.useState(null);
+
+      // Handle image upload (mocked)
+      const handleImageUpload = (event) => {
+        setSelectedImage(URL.createObjectURL(event.target.files[0]));
+        setFoodData(mockFoodData); // Mock AI recognition
+        setScreen("result");
+      };
+
+      // Check for allergens
+      const checkAllergens = () => {
+        return mockFoodData.allergens.some((allergen) =>
+          userAllergies.includes(allergen)
+        );
+      };
+
+      // Home Screen
+      const HomeScreen = () => (
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+          <h1 className="text-3xl font-bold mb-6">Food Recognition App</h1>
+          <p className="text-lg mb-4">Upload a photo of your dish to analyze ingredients and nutrition.</p>
+          <input
+            type="file"
+            accept="image/*"
+            className="mb-4 p-2 border rounded"
+            onChange={handleImageUpload}
+          />
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            onClick={() => setScreen("allergies")}
+          >
+            Manage Allergies
+          </button>
+        </div>
+      );
+
+      // Allergies Management Screen
+      const AllergiesScreen = () => {
+        const [newAllergy, setNewAllergy] = React.useState("");
+        
+        const addAllergy = () => {
+          if (newAllergy && !userAllergies.includes(newAllergy)) {
+            setUserAllergies([...userAllergies, newAllergy]);
+            setNewAllergy("");
+          }
+        };
+
+        return (
+          <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+            <h1 className="text-3xl font-bold mb-6">Manage Allergies</h1>
+            <div className="mb-4">
+              <input
+                type="text"
+                value={newAllergy}
+                onChange={(e) => setNewAllergy(e.target.value)}
+                placeholder="Enter allergy (e.g., Seafood)"
+                className="p-2 border rounded mr-2"
+              />
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                onClick={addAllergy}
+              >
+                Add
+              </button>
+            </div>
+            <ul className="mb-4">
+              {userAllergies.map((allergy, index) => (
+                <li key={index} className="text-lg">{allergy}</li>
+              ))}
+            </ul>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              onClick={() => setScreen("home")}
+            >
+              Back to Home
+            </button>
+          </div>
+        );
+      };
+
+      // Result Screen
+      const ResultScreen = () => (
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-100 p-4">
+          <h1 className="text-3xl font-bold mb-6">Analysis Result</h1>
+          {selectedImage && (
+            <img src={selectedImage} alt="Uploaded Dish" className="w-64 h-64 object-cover rounded mb-4" />
+          )}
+          <h2 className="text-xl font-semibold">Dish: {foodData.dish}</h2>
+          <p className="text-lg mb-2">Ingredients: {foodData.ingredients.join(", ")}</p>
+          <p className="text-lg mb-2">Nutrition (per serving):</p>
+          <ul className="list-disc ml-6 mb-4">
+            <li>Calories: {foodData.nutrition.calories} kcal</li>
+            <li>Protein: {foodData.nutrition.protein}g</li>
+            <li>Carbs: {foodData.nutrition.carbs}g</li>
+            <li>Fat: {foodData.nutrition.fat}g</li>
+          </ul>
+          {checkAllergens() && (
+            <div className="bg-red-500 text-white p-4 rounded mb-4">
+              Warning: This dish contains {foodData.allergens.join(", ")}, which you are allergic to!
+            </div>
+          )}
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mb-4"
+            onClick={() => setScreen("recipes")}
+          >
+            View Recipe Suggestions
+          </button>
+          <button
+            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            onClick={() => setScreen("home")}
+          >
+            Back to Home
+          </button>
+        </div>
+      );
+
+      // Recipe Suggestions Screen
+      const RecipeScreen = () => (
+        <div className="flex flex-col items-center justify-center h-screen bg-gray-100 p-4">
+          <h1 className="text-3xl font-bold mb-6">Recipe Suggestions</h1>
+          <p className="text-lg mb-4">Safe alternatives for your dietary needs:</p>
+          {mockRecipes.map((recipe, index) => (
+            <div key={index} className="bg-white p-4 rounded shadow mb-4 w-full max-w-md">
+              <h2 className="text-xl font-semibold">{recipe.name}</h2>
+              <p>Ingredients: {recipe.ingredients.join(", ")}</p>
+              {recipe.safeForAllergies && (
+                <p className="text-green-500">Safe for your allergies</p>
+              )}
+            </div>
+          ))}
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            onClick={() => setScreen("result")}
+          >
+            Back to Results
+          </button>
+        </div>
+      );
+
+      // Render based on current screen
+      return (
+        <div>
+          {screen === "home" && <HomeScreen />}
+          {screen === "allergies" && <AllergiesScreen />}
+          {screen === "result" && <ResultScreen />}
+          {screen === "recipes" && <RecipeScreen />}
+        </div>
+      );
+    };
+
+    // Render the App
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>
