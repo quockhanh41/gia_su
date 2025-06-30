@@ -46,7 +46,7 @@ const transporter = nodemailer.createTransport({
 
 const mathClassIDSet = new Set();
 const englishClassIDSet = new Set();
-const artClassIDSet = new Set();
+const ITClassIDSet = new Set();
 let classes = []; // Mảng lưu trữ tất cả các lớp học
 
 // Hàm kiểm tra lớp học và gửi email nếu tìm thấy lớp phù hợp
@@ -72,7 +72,7 @@ async function checkClasses() {
     classes = []; // Reset mảng classes
     let mathClass = [];
     let englishClass = [];
-    let artClass = [];
+    let ITClass = [];
 
     // Xử lý từng lớp học (7 dòng một lớp)
     for (let i = 2; i < matches.length; i += 7) {
@@ -114,9 +114,9 @@ async function checkClasses() {
           englishClass.push(classInfo.join("\n"));
           englishClassIDSet.add(classID);
         }
-        if (subject.includes("vẽ") && !artClassIDSet.has(classID)) {
-          artClass.push(classInfo.join("\n"));
-          artClassIDSet.add(classID);
+        if ((subject.includes("lập trình") || subject.includes("c++") || subject.includes("python") || subject.includes("java") || subject.includes("javascript") || subject.includes("tin")) && !ITClassIDSet.has(classID)) {
+          ITClass.push(classInfo.join("\n"));
+          ITClassIDSet.add(classID);
         }
       }
     }
@@ -131,11 +131,11 @@ async function checkClasses() {
       // sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(englishClass.join("\n\n"));
     }
-    if (artClass.length > 0) {
-      // sendEmail(artClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
-      // console.log(artClass.join("\n\n"));
+    if (ITClass.length > 0) {
+      sendEmail(ITClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      // console.log(ITClass.join("\n\n"));
     }
-    console.log(mathClass.length, englishClass.length, artClass.length);
+    console.log(mathClass.length, englishClass.length, ITClass.length);
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu:", error);
   }
@@ -168,7 +168,7 @@ app.get("/", (req, res) => {
 app.get("/clear", (req, res) => {
   mathClassIDSet.clear();
   englishClassIDSet.clear();
-  artClassIDSet.clear();
+  ITClassIDSet.clear();
   res.send("Đã xóa danh sách lớp học!");
 });
 
@@ -196,6 +196,6 @@ app.post("/search", (req, res) => {
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server chạy trên http://localhost:${PORT}`);
-  // Kiểm tra lớp học mỗi 5 giây
-  setInterval(checkClasses, 30 * 1000);
+  // Kiểm tra lớp học mỗi 5 phút
+  setInterval(checkClasses, 2 * 60 * 1000);
 });
