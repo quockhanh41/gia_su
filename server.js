@@ -114,7 +114,7 @@ async function checkClasses() {
           englishClass.push(classInfo.join("\n"));
           englishClassIDSet.add(classID);
         }
-        if ((subject.includes("lập trình") || subject.includes("c++") || subject.includes("python") || subject.includes("java") || subject.includes("javascript") || subject.includes("tin")) && !ITClassIDSet.has(classID)) {
+        if ((subject.includes("lập trình") || subject.includes("c++") || subject.includes("python") || subject.includes("java") || subject.includes("javascript") || subject.includes("tin")) && !subject.includes("văn phòng") && !ITClassIDSet.has(classID)) {
           ITClass.push(classInfo.join("\n"));
           ITClassIDSet.add(classID);
         }
