@@ -62,7 +62,7 @@ async function checkClasses() {
     const paragraphs = xpath.select("//p/span/text()", doc);
 
     let matches = [];
-    for (let i = 0; i < paragraphs.length; i++) {
+    for (let i = 2; i < paragraphs.length; i++) {
       const text = paragraphs[i].nodeValue.trim();
       if (text) {
         matches.push(text);
@@ -78,7 +78,6 @@ async function checkClasses() {
     for (let i = 2; i < matches.length; i += 7) {
       const classInfo = matches.slice(i, i + 7);
       if (classInfo.length < 7) continue; // Bỏ qua nếu không đủ 7 dòng
-
       const classID = classInfo[0].split(":")[1]?.trim().toLowerCase();
       if (!classID) continue;
 
@@ -114,8 +113,20 @@ async function checkClasses() {
           englishClass.push(classInfo.join("\n"));
           englishClassIDSet.add(classID);
         }
-        if ((subject.includes("lập trình") || subject.includes("c++") || subject.includes("python") || subject.includes("java") || subject.includes("javascript") || subject.includes("tin")) 
-          && !(subject.includes("văn phòng") || subject.includes("vp") || subject.includes("excel")) && !ITClassIDSet.has(classID)) {
+        if (
+          (subject.includes("lập trình") ||
+            subject.includes("c++") ||
+            subject.includes("python") ||
+            subject.includes("java") ||
+            subject.includes("javascript") ||
+            subject.includes("tin")) &&
+          !(
+            subject.includes("văn phòng") ||
+            subject.includes("vp") ||
+            subject.includes("excel")
+          ) &&
+          !ITClassIDSet.has(classID)
+        ) {
           ITClass.push(classInfo.join("\n"));
           ITClassIDSet.add(classID);
         }
@@ -123,13 +134,13 @@ async function checkClasses() {
     }
 
     if (mathClass.length > 0) {
-      sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
-      // sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      // sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
+      sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(mathClass.join("\n\n"));
     }
     if (englishClass.length > 0) {
-      sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
-      // sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      // sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
+      sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(englishClass.join("\n\n"));
     }
     if (ITClass.length > 0) {
@@ -198,5 +209,5 @@ const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Server chạy trên http://localhost:${PORT}`);
   // Kiểm tra lớp học mỗi 5 phút
-  setInterval(checkClasses, 2 * 60 * 1000);
+  setInterval(checkClasses, 5 * 1000);
 });
