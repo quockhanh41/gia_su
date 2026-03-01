@@ -690,6 +690,33 @@
         }
       }
 
+      // Helper function: Kiểm tra môn học với word boundary để tránh match substring
+      // VD: "anh" sẽ match "Tiếng Anh" nhưng không match "Thanh nhạc"
+      function matchSubject(text, keyword) {
+        // Danh sách các cụm từ loại trừ (không phải môn học)
+        const exclusions = {
+          'toán': ['kế toán', 'kế-toán'],
+          'hóa': ['văn hóa', 'văn-hóa', 'âm hóa'],
+        };
+        
+        // Lowercase để so sánh
+        const lowerText = text.toLowerCase();
+        const lowerKeyword = keyword.toLowerCase();
+        
+        // Kiểm tra các cụm từ loại trừ
+        if (exclusions[lowerKeyword]) {
+          for (const excluded of exclusions[lowerKeyword]) {
+            if (lowerText.includes(excluded)) {
+              return false;
+            }
+          }
+        }
+        
+        // Kiểm tra word boundary
+        const pattern = new RegExp(`\\b${lowerKeyword}\\b`, 'i');
+        return pattern.test(lowerText);
+      }
+
       // Áp dụng bộ lọc
       function applyFilters() {
         // Lấy các checkbox đã chọn
@@ -712,7 +739,7 @@
           // Filter by subject
           if (selectedSubjects.length > 0) {
             const hasSubject = selectedSubjects.some(subject => 
-              cls.name.includes(subject)
+              matchSubject(cls.name, subject)
             );
             if (!hasSubject) return false;
           }

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Subject Filter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-case {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .pass {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        h1 {
+            color: #333;
+        }
+        .summary {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Subject Filter Logic</h1>
+    <div id="results"></div>
+    <div id="summary" class="summary"></div>
+
+    <script>
+        // Helper function from index.html
+        function matchSubject(text, keyword) {
+            const exclusions = {
+                'toán': ['kế toán', 'kế-toán'],
+                'hóa': ['văn hóa', 'văn-hóa', 'âm hóa'],
+            };
+            
+            const lowerText = text.toLowerCase();
+            const lowerKeyword = keyword.toLowerCase();
+            
+            if (exclusions[lowerKeyword]) {
+                for (const excluded of exclusions[lowerKeyword]) {
+                    if (lowerText.includes(excluded)) {
+                        return false;
+                    }
+                }
+            }
+            
+            const pattern = new RegExp(`\\b${lowerKeyword}\\b`, 'i');
+            return pattern.test(lowerText);
+        }
+
+        // Test cases
+        const testCases = [
+            // Môn Anh
+            { name: "Tiếng Anh lớp 5", subject: "anh", expected: true, desc: "Tiếng Anh phải match" },
+            { name: "Anh văn lớp 8", subject: "anh", expected: true, desc: "Anh văn phải match" },
+            { name: "Thanh nhạc", subject: "anh", expected: false, desc: "Thanh nhạc KHÔNG phải môn Anh" },
+            { name: "Môn học: Anh", subject: "anh", expected: true, desc: "Standalone 'Anh' phải match" },
+            
+            // Môn Toán
+            { name: "Toán lớp 6", subject: "toán", expected: true, desc: "Toán phải match" },
+            { name: "Kế toán", subject: "toán", expected: false, desc: "Kế toán KHÔNG phải môn Toán" },
+            { name: "Dạy toán", subject: "toán", expected: true, desc: "Dạy toán phải match" },
+            
+            // Môn Hóa
+            { name: "Hóa học lớp 9", subject: "hóa", expected: true, desc: "Hóa học phải match" },
+            { name: "Văn hóa", subject: "hóa", expected: false, desc: "Văn hóa KHÔNG phải môn Hóa" },
+            
+            // Môn Sinh
+            { name: "Sinh học lớp 10", subject: "sinh", expected: true, desc: "Sinh học phải match" },
+            { name: "Môn sinh", subject: "sinh", expected: true, desc: "Môn sinh phải match" },
+            
+            // Môn Lý
+            { name: "Vật lý lớp 8", subject: "lý", expected: true, desc: "Vật lý phải match" },
+            
+            // Case insensitive
+            { name: "TIẾNG ANH", subject: "anh", expected: true, desc: "Case insensitive test" },
+        ];
+
+        let passed = 0;
+        let failed = 0;
+        const resultsDiv = document.getElementById('results');
+
+        testCases.forEach((test, index) => {
+            const result = matchSubject(test.name, test.subject);
+            const isPass = result === test.expected;
+            
+            if (isPass) {
+                passed++;
+            } else {
+                failed++;
+            }
+
+            const testDiv = document.createElement('div');
+            testDiv.className = `test-case ${isPass ? 'pass' : 'fail'}`;
+            testDiv.innerHTML = `
+                <strong>${isPass ? '✓' : '✗'} Test ${index + 1}:</strong> ${test.desc}<br>
+                <em>Name:</em> "${test.name}" | <em>Subject:</em> "${test.subject}"<br>
+                <em>Expected:</em> ${test.expected} | <em>Got:</em> ${result}
+            `;
+            resultsDiv.appendChild(testDiv);
+        });
+
+        // Summary
+        const summaryDiv = document.getElementById('summary');
+        summaryDiv.innerHTML = `
+            📊 Test Summary: ${passed}/${testCases.length} passed
+            ${failed > 0 ? `<br>❌ ${failed} test(s) failed` : '<br>✅ All tests passed!'}
+        `;
+        summaryDiv.style.backgroundColor = failed === 0 ? '#d4edda' : '#f8d7da';
+        summaryDiv.style.color = failed === 0 ? '#155724' : '#721c24';
+    </script>
+</body>
+</html>
