@@ -292,7 +292,7 @@ async function checkClasses() {
     }
     if (englishClass.length > 0) {
       // sendEmail(englishClass.join("\n\n"), "baotram10052007@gmail.com");
-      await sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
+      await sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(englishClass.join("\n\n"));
     }
     if (ITClass.length > 0) {
