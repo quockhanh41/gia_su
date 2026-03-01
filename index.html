@@ -69,6 +69,69 @@
         border-radius: 12px;
         margin-bottom: 25px;
       }
+      .filter-section {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+      .filter-group {
+        background-color: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+      .filter-title {
+        color: #2c3e50;
+        font-size: 1.1em;
+        margin-bottom: 15px;
+        font-weight: 600;
+      }
+      .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 12px;
+      }
+      .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.95em;
+        background-color: white;
+      }
+      .checkbox-label:hover {
+        border-color: #667eea;
+        background-color: #f8f9ff;
+      }
+      .checkbox-label input[type="checkbox"] {
+        cursor: pointer;
+        width: 18px;
+        height: 18px;
+        accent-color: #667eea;
+      }
+      .checkbox-label input[type="checkbox"]:checked + span,
+      .checkbox-label:has(input:checked) {
+        border-color: #667eea;
+        background-color: #f0f2ff;
+        font-weight: 600;
+      }
+      .search-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 0.95em;
+        transition: all 0.3s;
+      }
+      .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
       .form-header {
         display: flex;
         justify-content: space-between;
@@ -279,6 +342,14 @@
         background-color: #e74c3c;
         color: white;
       }
+      .distance-badge {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85em;
+        font-weight: bold;
+        background-color: #3498db;
+        color: white;
+      }
       .class-info {
         display: grid;
         gap: 12px;
@@ -352,6 +423,9 @@
       .toast.error {
         background-color: #e74c3c;
       }
+      .toast.info {
+        background-color: #3498db;
+      }
       @keyframes slideIn {
         from {
           transform: translateX(400px);
@@ -392,6 +466,9 @@
         .form-row {
           grid-template-columns: 1fr;
         }
+        .checkbox-grid {
+          grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
         .results-controls {
           flex-direction: column;
           align-items: stretch;
@@ -404,7 +481,18 @@
           grid-template-columns: 1fr;
         }
         .stats-container {
-          grid-template-columns: 1fr;
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .form-header {
+          flex-direction: column;
+          gap: 15px;
+        }
+        .form-actions {
+          width: 100%;
+          flex-direction: column;
+        }
+        .btn-secondary {
+          width: 100%;
         }
       }
     </style>
@@ -417,63 +505,134 @@
       <!-- Statistics Dashboard -->
       <div id="stats" class="stats-container" style="display: none;"></div>
 
-      <!-- Search Form -->
+      <!-- Filter Section -->
       <div class="search-section">
         <div class="form-header">
-          <h2>🔍 Tìm kiếm nâng cao</h2>
+          <h2>🔍 Bộ lọc tìm kiếm</h2>
           <div class="form-actions">
             <button type="button" class="btn-secondary" onclick="loadSavedFilter()">📥 Tải bộ lọc</button>
             <button type="button" class="btn-secondary" onclick="saveFilter()">💾 Lưu bộ lọc</button>
-            <button type="button" class="btn-secondary" onclick="clearForm()">🗑️ Xóa form</button>
+            <button type="button" class="btn-secondary" onclick="clearFilters()">🗑️ Xóa bộ lọc</button>
           </div>
         </div>
-        <form id="searchForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="classID">Mã lớp</label>
-              <input type="text" id="classID" name="classID" placeholder="Ví dụ: gs123">
-            </div>
-            <div class="form-group">
-              <label for="name">Tên lớp / Môn học</label>
-              <input type="text" id="name" name="name" placeholder="Toán, Anh, Lập trình...">
-            </div>
-            <div class="form-group">
-              <label for="address">Địa chỉ / Hình thức</label>
-              <input type="text" id="address" name="address" placeholder="Online, Hà Nội...">
+
+        <!-- Filter Form -->
+        <div class="filter-section">
+          <!-- Grade Levels -->
+          <div class="filter-group">
+            <h3 class="filter-title">📚 Lớp học</h3>
+            <div class="checkbox-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" value="1" class="grade-filter"> Lớp 1
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="2" class="grade-filter"> Lớp 2
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="3" class="grade-filter"> Lớp 3
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="4" class="grade-filter"> Lớp 4
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="5" class="grade-filter"> Lớp 5
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="6" class="grade-filter"> Lớp 6
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="7" class="grade-filter"> Lớp 7
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="8" class="grade-filter"> Lớp 8
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="9" class="grade-filter"> Lớp 9
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="10" class="grade-filter"> Lớp 10
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="11" class="grade-filter"> Lớp 11
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="12" class="grade-filter"> Lớp 12
+              </label>
             </div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="schedule">Lịch học</label>
-              <input type="text" id="schedule" name="schedule" placeholder="T2, T4, T6...">
-            </div>
-            <div class="form-group">
-              <label for="price">Học phí</label>
-              <input type="text" id="price" name="price" placeholder="150k, 200k...">
-            </div>
-            <div class="form-group">
-              <label for="condition">Điều kiện</label>
-              <input type="text" id="condition" name="condition" placeholder="Sinh viên, kinh nghiệm...">
+
+          <!-- Subjects -->
+          <div class="filter-group">
+            <h3 class="filter-title">📖 Môn học</h3>
+            <div class="checkbox-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" value="toán" class="subject-filter"> Toán
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="lý" class="subject-filter"> Lý
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="hóa" class="subject-filter"> Hóa
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="sinh" class="subject-filter"> Sinh
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="văn" class="subject-filter"> Văn
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="anh" class="subject-filter"> Anh
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="sử" class="subject-filter"> Sử
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="địa" class="subject-filter"> Địa
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="gdcd" class="subject-filter"> GDCD
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="tin học" class="subject-filter"> Tin học
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="lập trình" class="subject-filter"> Lập trình
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="ielts" class="subject-filter"> IELTS
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="toeic" class="subject-filter"> TOEIC
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="giao tiếp" class="subject-filter"> Giao tiếp
+              </label>
             </div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="fee">Phí nhận lớp</label>
-              <input type="text" id="fee" name="fee" placeholder="30%, 300k...">
-            </div>
-            <div class="form-group">
-              <label for="filterType">Lọc theo loại</label>
-              <select id="filterType">
-                <option value="all">Tất cả</option>
-                <option value="online">Chỉ Online</option>
-                <option value="offline">Chỉ Offline</option>
-              </select>
+
+          <!-- Location Type -->
+          <div class="filter-group">
+            <h3 class="filter-title">📍 Hình thức</h3>
+            <div class="checkbox-grid">
+              <label class="checkbox-label">
+                <input type="checkbox" value="online" class="location-filter" checked> Online
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" value="offline" class="location-filter" checked> Offline
+              </label>
             </div>
           </div>
-          <button type="submit" class="btn-primary" id="searchBtn">
-            <span id="btnText">🔍 Tìm kiếm</span>
+
+          <!-- Search Input -->
+          <div class="filter-group">
+            <h3 class="filter-title">🔎 Tìm kiếm tự do</h3>
+            <input type="text" id="freeSearch" placeholder="Tìm theo mã lớp, lịch học, học phí, điều kiện..." class="search-input">
+          </div>
+
+          <button type="button" class="btn-primary" onclick="applyFilters()">
+            🔍 Áp dụng bộ lọc
           </button>
-        </form>
+        </div>
       </div>
 
       <!-- Results Section -->
@@ -487,6 +646,8 @@
             <label>Sắp xếp:</label>
             <select id="sortBy" onchange="applySorting()">
               <option value="default">Mặc định</option>
+              <option value="distance-asc">Khoảng cách gần nhất</option>
+              <option value="distance-desc">Khoảng cách xa nhất</option>
               <option value="price-asc">Giá tăng dần</option>
               <option value="price-desc">Giá giảm dần</option>
               <option value="name">Tên lớp</option>
@@ -505,67 +666,86 @@
       let currentPage = 1;
       const itemsPerPage = 10;
 
-      // Load saved filter on page load
-      window.addEventListener('DOMContentLoaded', () => {
+      // Load data khi page load
+      window.addEventListener('DOMContentLoaded', async () => {
+        await loadAllClasses();
         loadSavedFilter();
       });
 
-      // Form submission
-      document.getElementById("searchForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await performSearch();
-      });
-
-      async function performSearch() {
-        const searchBtn = document.getElementById("searchBtn");
-        const btnText = document.getElementById("btnText");
-        
-        // Show loading state
-        searchBtn.disabled = true;
-        btnText.innerHTML = '<span class="spinner"></span> Đang tìm kiếm...';
-
-        const formData = {
-          classID: document.getElementById("classID").value.toLowerCase().trim(),
-          name: document.getElementById("name").value.toLowerCase().trim(),
-          address: document.getElementById("address").value.toLowerCase().trim(),
-          schedule: document.getElementById("schedule").value.toLowerCase().trim(),
-          price: document.getElementById("price").value.toLowerCase().trim(),
-          condition: document.getElementById("condition").value.toLowerCase().trim(),
-          fee: document.getElementById("fee").value.toLowerCase().trim(),
-        };
-
+      // Load tất cả lớp học từ server
+      async function loadAllClasses() {
         try {
-          const response = await fetch("/search", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-          });
-
+          showToast('Đang tải dữ liệu...', 'info');
+          const response = await fetch('/classes');
           if (!response.ok) throw new Error('Network response was not ok');
-
-          allClasses = await response.json();
           
-          // Apply type filter
-          const filterType = document.getElementById("filterType").value;
-          if (filterType === "online") {
-            allClasses = allClasses.filter(cls => cls.address.includes("online"));
-          } else if (filterType === "offline") {
-            allClasses = allClasses.filter(cls => !cls.address.includes("online"));
+          allClasses = await response.json();
+          filteredClasses = [...allClasses];
+          
+          applyFilters();
+          showToast(`Đã tải ${allClasses.length} lớp học!`, 'success');
+        } catch (error) {
+          console.error('Lỗi:', error);
+          showToast('Không thể tải dữ liệu. Vui lòng thử lại!', 'error');
+        }
+      }
+
+      // Áp dụng bộ lọc
+      function applyFilters() {
+        // Lấy các checkbox đã chọn
+        const selectedGrades = Array.from(document.querySelectorAll('.grade-filter:checked')).map(cb => cb.value);
+        const selectedSubjects = Array.from(document.querySelectorAll('.subject-filter:checked')).map(cb => cb.value);
+        const selectedLocations = Array.from(document.querySelectorAll('.location-filter:checked')).map(cb => cb.value);
+        const freeSearch = document.getElementById('freeSearch').value.toLowerCase().trim();
+
+        // Filter classes
+        filteredClasses = allClasses.filter(cls => {
+          // Filter by grade
+          if (selectedGrades.length > 0) {
+            const hasGrade = selectedGrades.some(grade => {
+              const gradePattern = new RegExp(`lớp\\s*${grade}(?!\\d)`, 'i');
+              return gradePattern.test(cls.name);
+            });
+            if (!hasGrade) return false;
           }
 
-          filteredClasses = [...allClasses];
-          currentPage = 1;
-          
-          displayResults();
-          updateStatistics();
-          showToast(`Tìm thấy ${allClasses.length} lớp học phù hợp!`, 'success');
-        } catch (error) {
-          console.error("Lỗi:", error);
-          showToast('Có lỗi xảy ra khi tìm kiếm', 'error');
-        } finally {
-          searchBtn.disabled = false;
-          btnText.innerHTML = '🔍 Tìm kiếm';
-        }
+          // Filter by subject
+          if (selectedSubjects.length > 0) {
+            const hasSubject = selectedSubjects.some(subject => 
+              cls.name.includes(subject)
+            );
+            if (!hasSubject) return false;
+          }
+
+          // Filter by location
+          if (selectedLocations.length > 0) {
+            const isOnline = cls.address.includes('online');
+            if (selectedLocations.includes('online') && selectedLocations.includes('offline')) {
+              // Both selected, show all
+            } else if (selectedLocations.includes('online') && !isOnline) {
+              return false;
+            } else if (selectedLocations.includes('offline') && isOnline) {
+              return false;
+            }
+          } else {
+            // No location selected, show none
+            return false;
+          }
+
+          // Free text search
+          if (freeSearch) {
+            const searchableText = `${cls.classID} ${cls.name} ${cls.address} ${cls.schedule} ${cls.price} ${cls.condition} ${cls.fee}`.toLowerCase();
+            if (!searchableText.includes(freeSearch)) {
+              return false;
+            }
+          }
+
+          return true;
+        });
+
+        currentPage = 1;
+        displayResults();
+        updateStatistics();
       }
 
       function displayResults() {
@@ -608,7 +788,10 @@
             <div class="class-item ${statusClass}">
               <div class="class-header">
                 <span class="class-id">${cls.classID.toUpperCase()}</span>
-                <span class="status-badge ${statusBadgeClass}">${statusText}</span>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span class="status-badge ${statusBadgeClass}">${statusText}</span>
+                  ${cls.distance ? `<span class="distance-badge">📍 ${cls.distance}</span>` : ''}
+                </div>
               </div>
               <div class="class-info">
                 <div class="info-row">
@@ -619,6 +802,12 @@
                   <span class="info-label">📍 Địa chỉ:</span>
                   <span class="info-value">${cls.address}</span>
                 </div>
+                ${cls.distance ? `
+                <div class="info-row" style="background-color: #e8f5e9;">
+                  <span class="info-label">🚗 Khoảng cách:</span>
+                  <span class="info-value" style="font-weight: 700; color: #27ae60;">${cls.distance} (~${cls.duration})</span>
+                </div>
+                ` : ''}
                 <div class="info-row">
                   <span class="info-label">📅 Lịch học:</span>
                   <span class="info-value">${cls.schedule}</span>
@@ -678,6 +867,22 @@
         const sortBy = document.getElementById("sortBy").value;
         
         switch(sortBy) {
+          case 'distance-asc':
+            filteredClasses.sort((a, b) => {
+              if (!a.distance && !b.distance) return 0;
+              if (!a.distance) return 1;
+              if (!b.distance) return -1;
+              return extractDistance(a.distance) - extractDistance(b.distance);
+            });
+            break;
+          case 'distance-desc':
+            filteredClasses.sort((a, b) => {
+              if (!a.distance && !b.distance) return 0;
+              if (!a.distance) return 1;
+              if (!b.distance) return -1;
+              return extractDistance(b.distance) - extractDistance(a.distance);
+            });
+            break;
           case 'price-asc':
             filteredClasses.sort((a, b) => extractPrice(a.price) - extractPrice(b.price));
             break;
@@ -688,7 +893,9 @@
             filteredClasses.sort((a, b) => a.name.localeCompare(b.name));
             break;
           default:
-            filteredClasses = [...allClasses];
+            // Re-apply filters to get original order
+            applyFilters();
+            return;
         }
         
         currentPage = 1;
@@ -700,24 +907,33 @@
         return match ? parseInt(match[1]) : 0;
       }
 
+      function extractDistance(distanceStr) {
+        // Extract number from "5.2 km" or "500 m"
+        const match = distanceStr.match(/([\d.]+)\s*(km|m)/);
+        if (!match) return Infinity;
+        const value = parseFloat(match[1]);
+        const unit = match[2];
+        return unit === 'km' ? value : value / 1000;
+      }
+
       function updateStatistics() {
         const statsDiv = document.getElementById("stats");
-        if (allClasses.length === 0) {
+        if (filteredClasses.length === 0) {
           statsDiv.style.display = "none";
           return;
         }
 
         statsDiv.style.display = "grid";
-        const onlineCount = allClasses.filter(c => c.address.includes("online")).length;
-        const offlineCount = allClasses.length - onlineCount;
+        const onlineCount = filteredClasses.filter(c => c.address.includes("online")).length;
+        const offlineCount = filteredClasses.length - onlineCount;
         
-        const prices = allClasses.map(c => extractPrice(c.price)).filter(p => p > 0);
+        const prices = filteredClasses.map(c => extractPrice(c.price)).filter(p => p > 0);
         const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
 
         statsDiv.innerHTML = `
           <div class="stat-card">
-            <h3>${allClasses.length}</h3>
-            <p>Tổng số lớp</p>
+            <h3>${filteredClasses.length}</h3>
+            <p>Kết quả tìm được</p>
           </div>
           <div class="stat-card">
             <h3>${onlineCount}</h3>
@@ -747,14 +963,10 @@
 
       function saveFilter() {
         const filterData = {
-          classID: document.getElementById("classID").value,
-          name: document.getElementById("name").value,
-          address: document.getElementById("address").value,
-          schedule: document.getElementById("schedule").value,
-          price: document.getElementById("price").value,
-          condition: document.getElementById("condition").value,
-          fee: document.getElementById("fee").value,
-          filterType: document.getElementById("filterType").value,
+          grades: Array.from(document.querySelectorAll('.grade-filter:checked')).map(cb => cb.value),
+          subjects: Array.from(document.querySelectorAll('.subject-filter:checked')).map(cb => cb.value),
+          locations: Array.from(document.querySelectorAll('.location-filter:checked')).map(cb => cb.value),
+          freeSearch: document.getElementById('freeSearch').value,
         };
         localStorage.setItem('savedFilter', JSON.stringify(filterData));
         showToast('Đã lưu bộ lọc!', 'success');
@@ -764,21 +976,52 @@
         const saved = localStorage.getItem('savedFilter');
         if (saved) {
           const filterData = JSON.parse(saved);
-          document.getElementById("classID").value = filterData.classID || '';
-          document.getElementById("name").value = filterData.name || '';
-          document.getElementById("address").value = filterData.address || '';
-          document.getElementById("schedule").value = filterData.schedule || '';
-          document.getElementById("price").value = filterData.price || '';
-          document.getElementById("condition").value = filterData.condition || '';
-          document.getElementById("fee").value = filterData.fee || '';
-          document.getElementById("filterType").value = filterData.filterType || 'all';
+          
+          // Uncheck all first
+          document.querySelectorAll('.grade-filter').forEach(cb => cb.checked = false);
+          document.querySelectorAll('.subject-filter').forEach(cb => cb.checked = false);
+          document.querySelectorAll('.location-filter').forEach(cb => cb.checked = false);
+          
+          // Apply saved filters
+          filterData.grades?.forEach(grade => {
+            const checkbox = document.querySelector(`.grade-filter[value="${grade}"]`);
+            if (checkbox) checkbox.checked = true;
+          });
+          
+          filterData.subjects?.forEach(subject => {
+            const checkbox = document.querySelector(`.subject-filter[value="${subject}"]`);
+            if (checkbox) checkbox.checked = true;
+          });
+          
+          filterData.locations?.forEach(location => {
+            const checkbox = document.querySelector(`.location-filter[value="${location}"]`);
+            if (checkbox) checkbox.checked = true;
+          });
+          
+          document.getElementById('freeSearch').value = filterData.freeSearch || '';
+          
+          if (allClasses.length > 0) {
+            applyFilters();
+          }
         }
       }
 
-      function clearForm() {
-        document.getElementById("searchForm").reset();
-        document.getElementById("filterType").value = 'all';
-        showToast('Đã xóa form!', 'success');
+      function clearFilters() {
+        // Uncheck all checkboxes
+        document.querySelectorAll('.grade-filter, .subject-filter').forEach(cb => cb.checked = false);
+        
+        // Check both location types by default
+        document.querySelectorAll('.location-filter').forEach(cb => cb.checked = true);
+        
+        // Clear search input
+        document.getElementById('freeSearch').value = '';
+        
+        // Clear saved filter
+        localStorage.removeItem('savedFilter');
+        
+        // Apply filters (which will show all classes)
+        applyFilters();
+        showToast('Đã xóa bộ lọc!', 'success');
       }
 
       function exportToCSV() {
