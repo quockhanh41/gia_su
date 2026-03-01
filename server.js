@@ -327,6 +327,16 @@ app.get("/classes", (req, res) => {
   res.json(classes);
 });
 
+// Health check endpoint cho uptime monitoring
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    classesCount: classes.length
+  });
+});
+
 // Endpoint để reset danh sách lớp học
 app.get("/clear", (req, res) => {
   mathClassIDSet.clear();
@@ -357,7 +367,7 @@ app.post("/search", (req, res) => {
 });
 
 // Chạy server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server chạy trên http://localhost:${PORT}`);
   // Crawl dữ liệu ngay khi start
