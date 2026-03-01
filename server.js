@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
 const cors = require("cors");
 const path = require("path");
 const xpath = require("xpath");
@@ -41,7 +42,13 @@ const SHEET_URL =
 // Địa chỉ gốc để tính khoảng cách
 const HOME_ADDRESS = "KTX KHU B, Đ. Mạc Đĩnh Chi, Khu phố Tân Hòa, Dĩ An, Bình Dương";
 
-// Cấu hình email sender
+// Cấu hình SendGrid (ưu tiên, dùng HTTP API thay vì SMTP)
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log("✓ SendGrid configured");
+}
+
+// Cấu hình nodemailer (fallback nếu SendGrid không có)
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 587,
@@ -314,7 +321,41 @@ async function checkClasses() {
 
 // Hàm gửi email
 // Hàm gửi email với retry logic
+// Hàm gửi email với SendGrid (ưu tiên) hoặc SMTP (fallback)
 async function sendEmail(content, email, retries = 3) {
+  // Try SendGrid first (HTTP API - không bị Render block)
+  if (process.env.SENDGRID_API_KEY) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const msg = {
+          to: email,
+          from: process.env.EMAIL_USER, // Must be verified sender in SendGrid
+          subject: "Tìm thấy lớp phù hợp!",
+          text: content,
+        };
+
+        await sgMail.send(msg);
+        console.log(`✓ Email sent to ${email} via SendGrid`);
+        return true;
+      } catch (error) {
+        console.error(`SendGrid error (attempt ${attempt}/${retries}):`, error.message);
+        
+        if (attempt < retries) {
+          const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+          console.log(`Retry SendGrid after ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        } else {
+          console.error(`SendGrid failed after ${retries} attempts. Trying SMTP fallback...`);
+        }
+      }
+    }
+  }
+
+  // Fallback to SMTP (nodemailer) if SendGrid not configured or failed
+  if (!process.env.SENDGRID_API_KEY) {
+    console.log("SendGrid not configured, using SMTP...");
+  }
+
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
@@ -324,28 +365,30 @@ async function sendEmail(content, email, retries = 3) {
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      // Verify connection trước khi gửi
+      // Verify connection trước khi gửi (chỉ lần đầu)
       if (attempt === 1) {
         await transporter.verify();
-        console.log('SMTP connection verified ✓');
+        console.log('✓ SMTP connection verified');
       }
       
       const info = await transporter.sendMail(mailOptions);
-      console.log(`Email đã gửi đến ${email}:`, info.response);
+      console.log(`✓ Email sent to ${email} via SMTP:`, info.response);
       return true;
     } catch (error) {
-      console.error(`Lỗi gửi email (lần ${attempt}/${retries}):`, error.message);
+      console.error(`SMTP error (attempt ${attempt}/${retries}):`, error.message);
       
       if (attempt < retries) {
-        const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Max 10s
-        console.log(`Retry sau ${delay}ms...`);
+        const delay = Math.min(1000 * Math.pow(2, attempt), 10000);
+        console.log(`Retry SMTP after ${delay}ms...`);
         await new Promise(resolve => setTimeout(resolve, delay));
       } else {
-        console.error(`Không thể gửi email đến ${email} sau ${retries} lần thử`);
+        console.error(`✗ Cannot send email to ${email} after ${retries} attempts (both SendGrid and SMTP failed)`);
         return false;
       }
     }
   }
+  
+  return false;
 }
 
 // Endpoint để phục vụ trang HTML
