@@ -306,25 +306,25 @@ async function checkClasses() {
     }
 
     if (mathClass.length > 0) {
-      // sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
-      await sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
-      // console.log(mathClass.join("\n\n"));
+      sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
+      // await sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      console.log(`Đ  ã gửi ${mathClass.length} lớp (Toán 6-7) đến thuy271019@gmail.com`);
     }
     if (englishClass.length > 0) {
-      // sendEmail(englishClass.join("\n\n"), "baotram10052007@gmail.com");
-      await sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
-      // console.log(englishClass.join("\n\n"));
+      sendEmail(englishClass.join("\n\n"), "baotram10052007@gmail.com");
+      // await sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      console.log(`Đã gửi ${englishClass.length} lớp (Tiếng Anh 1-8) đến baotram10052007@gmail.com`);
     }
     if (ITClass.length > 0) {
-      await sendEmail(ITClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
-      // console.log(ITClass.join("\n\n"));
+      sendEmail(ITClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      console.log(`Đã gửi ${ITClass.length} lớp (Lập trình) đến quockhanh4104.kn@gmail.com`);
     }
     if (customClass.length > 0) {
       // Tính khoảng cách cho các lớp offline trước khi gửi email
-      // const enrichedCustomClass = await calculateDistancesForCustomClasses(customClass);
-      // sendEmail(enrichedCustomClass.join("\n\n"), "yenngan23092006@gmail.com");
+      const enrichedCustomClass = await calculateDistancesForCustomClasses(customClass);
+      sendEmail(enrichedCustomClass.join("\n\n"), "yenngan23092006@gmail.com");
       // sendEmail(enrichedCustomClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
-      // console.log(`Đã gửi ${enrichedCustomClass.length} lớp (Sinh/Toán 1-8/Hóa 6-11) đến yenngan23092006@gmail.com`);
+      console.log(`Đã gửi ${enrichedCustomClass.length} lớp (Sinh/Toán 1-8/Hóa 6-11) đến yenngan23092006@gmail.com`);
     }
     console.log(
       mathClass.length,
