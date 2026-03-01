@@ -80,8 +80,13 @@ Hoặc **Custom schedule** (nâng cao):
 Request method: GET
 Request timeout: 30 seconds
 Redirects: Follow redirects
-Expected HTTP status code: 200
+Expected HTTP status code: 2xx-3xx (accept 200-399)
 ```
+
+💡 **Giải thích**: 
+- `2xx` = Success responses (200 OK, 201 Created, etc.)
+- `3xx` = Redirects (301, 302, 307, etc.) - cũng được coi là thành công
+- Điều này đảm bảo cronjob không fail nếu server redirect
 
 ### 2.5. Lưu và kích hoạt
 
@@ -98,7 +103,7 @@ Expected HTTP status code: 200
 1. Trong danh sách Cronjobs, click vào job `Keep Gia Su App Alive`
 2. Tab **"Execution history"** sẽ hiển thị:
    - **Last execution**: Thời gian chạy gần nhất
-   - **Status**: ✅ Success (200 OK) hoặc ❌ Failed
+   - **Status**: ✅ Success (2xx-3xx) hoặc ❌ Failed (4xx-5xx)
    - **Response time**: Thời gian phản hồi (ms)
 
 3. **Chờ 10 phút** để xem lần chạy đầu tiên

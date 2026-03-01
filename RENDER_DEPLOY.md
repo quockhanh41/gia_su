@@ -112,7 +112,9 @@ Render free tier sẽ **SLEEP SAU 15 PHÚT** không hoạt động. Để tránh
 - **Request method**: GET
 - **Request timeout**: 30 seconds
 - **Redirects**: Follow redirects
-- **Expected HTTP status code**: 200
+- **Expected HTTP status code**: 2xx-3xx (accept 200-399)
+
+💡 **Lưu ý**: Chấp nhận cả redirects (3xx) như success để tránh false alarms
 
 4. Click **"Create cronjob"**
 
