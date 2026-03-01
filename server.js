@@ -42,12 +42,25 @@ const SHEET_URL =
 const HOME_ADDRESS = "KTX KHU B, Đ. Mạc Đĩnh Chi, Khu phố Tân Hòa, Dĩ An, Bình Dương";
 
 // Cấu hình email sender
-const transporter = nodemailer.createTransport({  
-  service: "gmail",
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // Use TLS
   auth: {
-    user: process.env.EMAIL_USER, // Lấy từ biến môi trường
-    pass: process.env.EMAIL_PASS, // Lấy từ biến môi trường
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
+  tls: {
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: 60000, // 60 seconds
+  greetingTimeout: 30000, // 30 seconds
+  socketTimeout: 60000, // 60 seconds
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
+  logger: false, // Set true for debugging
+  debug: false, // Set true for debugging
 });
 
 const mathClassIDSet = new Set();
@@ -274,16 +287,16 @@ async function checkClasses() {
 
     if (mathClass.length > 0) {
       // sendEmail(mathClass.join("\n\n"), "thuy271019@gmail.com");
-      sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      await sendEmail(mathClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(mathClass.join("\n\n"));
     }
     if (englishClass.length > 0) {
       // sendEmail(englishClass.join("\n\n"), "baotram10052007@gmail.com");
-      sendEmail(englishClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      await sendEmail(englishClass.join("\n\n"), "lylai2001@gmail.com");
       // console.log(englishClass.join("\n\n"));
     }
     if (ITClass.length > 0) {
-      sendEmail(ITClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
+      await sendEmail(ITClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(ITClass.join("\n\n"));
     }
     if (customClass.length > 0) {
@@ -300,7 +313,8 @@ async function checkClasses() {
 }
 
 // Hàm gửi email
-function sendEmail(content, email) {
+// Hàm gửi email với retry logic
+async function sendEmail(content, email, retries = 3) {
   const mailOptions = {
     from: process.env.EMAIL_USER,
     to: email,
@@ -308,13 +322,30 @@ function sendEmail(content, email) {
     text: content,
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error("Lỗi gửi email:", error);
-    } else {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      // Verify connection trước khi gửi
+      if (attempt === 1) {
+        await transporter.verify();
+        console.log('SMTP connection verified ✓');
+      }
+      
+      const info = await transporter.sendMail(mailOptions);
       console.log(`Email đã gửi đến ${email}:`, info.response);
+      return true;
+    } catch (error) {
+      console.error(`Lỗi gửi email (lần ${attempt}/${retries}):`, error.message);
+      
+      if (attempt < retries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Max 10s
+        console.log(`Retry sau ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error(`Không thể gửi email đến ${email} sau ${retries} lần thử`);
+        return false;
+      }
     }
-  });
+  }
 }
 
 // Endpoint để phục vụ trang HTML
@@ -335,6 +366,37 @@ app.get("/health", (req, res) => {
     uptime: process.uptime(),
     classesCount: classes.length
   });
+});
+
+// Test SMTP connection endpoint
+app.get("/test-email", async (req, res) => {
+  console.log("Testing SMTP connection...");
+  console.log("EMAIL_USER:", process.env.EMAIL_USER ? "✓ Set" : "✗ Not set");
+  console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "✓ Set (hidden)" : "✗ Not set");
+  
+  try {
+    await transporter.verify();
+    res.json({ 
+      status: "success", 
+      message: "SMTP connection verified ✓",
+      config: {
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        user: process.env.EMAIL_USER,
+        connectionTimeout: "60s"
+      }
+    });
+    console.log("✓ SMTP connection verified successfully");
+  } catch (error) {
+    res.status(500).json({ 
+      status: "error", 
+      message: error.message,
+      code: error.code,
+      help: "Check RENDER_TROUBLESHOOTING.md for solutions"
+    });
+    console.error("✗ SMTP verification failed:", error.message);
+  }
 });
 
 // Endpoint để reset danh sách lớp học
