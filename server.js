@@ -1,11 +1,14 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
-const nodemailer = require("nodemailer");
+// Removed nodemailer -> const nodemailer = require("nodemailer");
 const cors = require("cors");
 const path = require("path");
 const xpath = require("xpath");
 const dom = require("xmldom").DOMParser;
+
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // Tắt các cảnh báo xmldom
 const parser = new dom({
@@ -39,29 +42,11 @@ const SHEET_URL =
   "https://docs.google.com/document/d/e/2PACX-1vT1YqDoJ6oQo5fuZs-maN6MJ2i82zk_DeX6dW1_S7d5DLgVNHt66Y6QRr3o4qRQK-RsgbdcDqsASJAi/pub";
 
 // Địa chỉ gốc để tính khoảng cách
-const HOME_ADDRESS = "KTX KHU B, Đ. Mạc Đĩnh Chi, Khu phố Tân Hòa, Dĩ An, Bình Dương";
+const HOME_ADDRESS =
+  "KTX KHU B, Đ. Mạc Đĩnh Chi, Khu phố Tân Hòa, Dĩ An, Bình Dương";
 
-// Cấu hình email sender
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false, // Use TLS
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 60000, // 60 seconds
-  greetingTimeout: 30000, // 30 seconds
-  socketTimeout: 60000, // 60 seconds
-  pool: true,
-  maxConnections: 5,
-  maxMessages: 100,
-  logger: false, // Set true for debugging
-  debug: false, // Set true for debugging
-});
+// Removed nodemailer transporter
+// const transporter = nodemailer.createTransport({...});
 
 const mathClassIDSet = new Set();
 const englishClassIDSet = new Set();
@@ -75,15 +60,15 @@ let classes = []; // Mảng lưu trữ tất cả các lớp học
 function matchSubject(text, keyword) {
   // Danh sách các cụm từ loại trừ (không phải môn học)
   const exclusions = {
-    'toán': ['kế toán', 'kế-toán'],
-    'hóa': ['văn hóa', 'văn-hóa', 'âm hóa'],
+    toán: ["kế toán", "kế-toán"],
+    hóa: ["văn hóa", "văn-hóa", "âm hóa"],
     // 'sinh': [] // Sinh nhật OK vì không phổ biến trong context lớp học
   };
-  
+
   // Lowercase để so sánh
   const lowerText = text.toLowerCase();
   const lowerKeyword = keyword.toLowerCase();
-  
+
   // Kiểm tra các cụm từ loại trừ
   if (exclusions[lowerKeyword]) {
     for (const excluded of exclusions[lowerKeyword]) {
@@ -92,33 +77,35 @@ function matchSubject(text, keyword) {
       }
     }
   }
-  
+
   // Kiểm tra word boundary
-  const pattern = new RegExp(`\\b${lowerKeyword}\\b`, 'i');
+  const pattern = new RegExp(`\\b${lowerKeyword}\\b`, "i");
   return pattern.test(lowerText);
 }
 
 // Hàm tính khoảng cách sử dụng Google Maps Distance Matrix API
 async function calculateDistanceGoogleMaps(destination) {
   if (!process.env.GOOGLE_MAPS_API_KEY) {
-    console.warn('Chưa cấu hình GOOGLE_MAPS_API_KEY');
+    console.warn("Chưa cấu hình GOOGLE_MAPS_API_KEY");
     return null;
   }
 
   try {
-    const url = 'https://maps.googleapis.com/maps/api/distancematrix/json';
+    const url = "https://maps.googleapis.com/maps/api/distancematrix/json";
     const params = {
       origins: HOME_ADDRESS,
       destinations: destination,
-      mode: 'driving',
-      language: 'vi',
+      mode: "driving",
+      language: "vi",
       key: process.env.GOOGLE_MAPS_API_KEY,
     };
 
     const response = await axios.get(url, { params });
-    
-    if (response.data.status === 'OK' && 
-        response.data.rows[0]?.elements[0]?.status === 'OK') {
+
+    if (
+      response.data.status === "OK" &&
+      response.data.rows[0]?.elements[0]?.status === "OK"
+    ) {
       const element = response.data.rows[0].elements[0];
       return {
         distance: element.distance.text,
@@ -130,7 +117,7 @@ async function calculateDistanceGoogleMaps(destination) {
     console.warn(`Không thể tính khoảng cách cho: "${destination}"`);
     return null;
   } catch (error) {
-    console.error('Lỗi khi tính khoảng cách Google Maps:', error.message);
+    console.error("Lỗi khi tính khoảng cách Google Maps:", error.message);
     return null;
   }
 }
@@ -138,31 +125,33 @@ async function calculateDistanceGoogleMaps(destination) {
 // Hàm tính khoảng cách cho các lớp offline trong customClass
 async function calculateDistancesForCustomClasses(classList) {
   if (!process.env.GOOGLE_MAPS_API_KEY) {
-    console.warn('⚠️  Bỏ qua tính khoảng cách: chưa có GOOGLE_MAPS_API_KEY');
+    console.warn("⚠️  Bỏ qua tính khoảng cách: chưa có GOOGLE_MAPS_API_KEY");
     return classList;
   }
 
   console.log(`Đang tính khoảng cách cho ${classList.length} lớp custom...`);
-  
+
   const enrichedList = [];
   for (const classText of classList) {
-    const lines = classText.split('\n');
+    const lines = classText.split("\n");
     if (lines.length >= 7) {
       const address = lines[2]; // Dòng thứ 3 là địa chỉ
-      const isOnline = address.toLowerCase().includes('online');
-      
+      const isOnline = address.toLowerCase().includes("online");
+
       if (!isOnline) {
         // Tính khoảng cách cho lớp offline
         const distanceInfo = await calculateDistanceGoogleMaps(address);
         if (distanceInfo) {
-          const enrichedClass = classText + `\nKhoảng cách: ${distanceInfo.distance} (~${distanceInfo.duration})`;
+          const enrichedClass =
+            classText +
+            `\nKhoảng cách: ${distanceInfo.distance} (~${distanceInfo.duration})`;
           enrichedList.push(enrichedClass);
           console.log(`✓ Đã tính khoảng cách: ${distanceInfo.distance}`);
         } else {
           enrichedList.push(classText);
         }
         // Delay tránh rate limit
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       } else {
         // Lớp online - không cần tính khoảng cách
         enrichedList.push(classText);
@@ -171,7 +160,7 @@ async function calculateDistancesForCustomClasses(classList) {
       enrichedList.push(classText);
     }
   }
-  
+
   console.log(`✓ Đã tính xong khoảng cách cho ${enrichedList.length} lớp`);
   return enrichedList;
 }
@@ -221,7 +210,7 @@ async function checkClasses() {
         classInfo[3].toLowerCase(),
         classInfo[4].toLowerCase(),
         classInfo[5].toLowerCase(),
-        classInfo[6].toLowerCase()
+        classInfo[6].toLowerCase(),
       );
       classes.push(newClass);
 
@@ -235,12 +224,12 @@ async function checkClasses() {
           mathClass.push(classInfo.join("\n"));
           mathClassIDSet.add(classID);
         }
-        
+
         // Tiếng Anh lớp 1-8 (online)
         if (matchSubject(subject, "anh") && !englishClassIDSet.has(classID)) {
           let matchEnglish = false;
           for (let grade = 1; grade <= 8; grade++) {
-            const pattern = new RegExp(`lớp\\s*${grade}(?!\\d)`, 'i');
+            const pattern = new RegExp(`lớp\\s*${grade}(?!\\d)`, "i");
             if (pattern.test(subject)) {
               matchEnglish = true;
               break;
@@ -251,7 +240,7 @@ async function checkClasses() {
             englishClassIDSet.add(classID);
           }
         }
-        
+
         if (
           (subject.includes("lập trình") ||
             subject.includes("c++") ||
@@ -270,44 +259,45 @@ async function checkClasses() {
           ITClassIDSet.add(classID);
         }
       }
-      
+
       // Lọc lớp tùy chỉnh: Sinh (mọi cấp), Toán 1-8, Hóa 6-11 tại HCM/Bình Dương
-      const isHCMOrBinhDuong = address.includes("hồ chí minh") || 
-                                address.includes("hcm") || 
-                                address.includes("tp.hcm") ||
-                                address.includes("bình dương") ||
-                                address.includes("binh duong");
-      
+      const isHCMOrBinhDuong =
+        address.includes("hồ chí minh") ||
+        address.includes("hcm") ||
+        address.includes("tp.hcm") ||
+        address.includes("bình dương") ||
+        address.includes("binh duong");
+
       if (isHCMOrBinhDuong && !customClassIDSet.has(classID)) {
         let matchCustom = false;
-        
+
         // Môn Sinh - mọi cấp độ
         if (matchSubject(subject, "sinh")) {
           matchCustom = true;
         }
-        
+
         // Toán lớp 1-8
         if (matchSubject(subject, "toán")) {
           for (let grade = 1; grade <= 8; grade++) {
-            const pattern = new RegExp(`lớp\\s*${grade}(?!\\d)`, 'i');
+            const pattern = new RegExp(`lớp\\s*${grade}(?!\\d)`, "i");
             if (pattern.test(subject)) {
               matchCustom = true;
               break;
             }
           }
         }
-        
+
         // Hóa lớp 6-11
         if (matchSubject(subject, "hóa") || matchSubject(subject, "hoa")) {
           for (let grade = 6; grade <= 11; grade++) {
-            const pattern = new RegExp(`lớp\\s*${grade}(?!\\d)`, 'i');
+            const pattern = new RegExp(`lớp\\s*${grade}(?!\\d)`, "i");
             if (pattern.test(subject)) {
               matchCustom = true;
               break;
             }
           }
         }
-        
+
         if (matchCustom) {
           customClass.push(classInfo.join("\n"));
           customClassIDSet.add(classID);
@@ -336,42 +326,50 @@ async function checkClasses() {
       // sendEmail(enrichedCustomClass.join("\n\n"), "quockhanh4104.kn@gmail.com");
       // console.log(`Đã gửi ${enrichedCustomClass.length} lớp (Sinh/Toán 1-8/Hóa 6-11) đến yenngan23092006@gmail.com`);
     }
-    console.log(mathClass.length, englishClass.length, ITClass.length, customClass.length);
+    console.log(
+      mathClass.length,
+      englishClass.length,
+      ITClass.length,
+      customClass.length,
+    );
   } catch (error) {
     console.error("Lỗi khi lấy dữ liệu:", error);
   }
 }
 
-// Hàm gửi email
-// Hàm gửi email với retry logic
+// Hàm gửi email với retry logic qua SendGrid
 async function sendEmail(content, email, retries = 3) {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
+  const msg = {
     to: email,
+    from: process.env.EMAIL_USER, // Phải dùng email đã đăng ký Single Sender Verification trên SendGrid
     subject: "Tìm thấy lớp phù hợp!",
     text: content,
   };
 
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      // Verify connection trước khi gửi
-      if (attempt === 1) {
-        await transporter.verify();
-        console.log('SMTP connection verified ✓');
-      }
-      
-      const info = await transporter.sendMail(mailOptions);
-      console.log(`Email đã gửi đến ${email}:`, info.response);
+      await sgMail.send(msg);
+      console.log(
+        `Email đã gửi đến ${email} (via SendGrid) - attempt: ${attempt}`,
+      );
       return true;
     } catch (error) {
-      console.error(`Lỗi gửi email (lần ${attempt}/${retries}):`, error.message);
-      
+      console.error(
+        `Lỗi gửi email bằng SendGrid (lần ${attempt}/${retries}):`,
+        error.message,
+      );
+      if (error.response) {
+        console.error(error.response.body);
+      }
+
       if (attempt < retries) {
-        const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Max 10s
+        const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Tối đa delay 10s
         console.log(`Retry sau ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
-        console.error(`Không thể gửi email đến ${email} sau ${retries} lần thử`);
+        console.error(
+          `Không thể gửi email đến ${email} sau ${retries} lần thử`,
+        );
         return false;
       }
     }
@@ -390,42 +388,49 @@ app.get("/classes", (req, res) => {
 
 // Health check endpoint cho uptime monitoring
 app.get("/health", (req, res) => {
-  res.status(200).json({ 
-    status: "ok", 
+  res.status(200).json({
+    status: "ok",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    classesCount: classes.length
+    classesCount: classes.length,
   });
 });
 
-// Test SMTP connection endpoint
+// Test Email API endpoint (SendGrid)
 app.get("/test-email", async (req, res) => {
-  console.log("Testing SMTP connection...");
-  console.log("EMAIL_USER:", process.env.EMAIL_USER ? "✓ Set" : "✗ Not set");
-  console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "✓ Set (hidden)" : "✗ Not set");
-  
+  console.log("Testing SendGrid connection/API KEY...");
+
+  if (!process.env.SENDGRID_API_KEY) {
+    return res.status(500).json({
+      status: "error",
+      message: "SENDGRID_API_KEY not found in environment variables",
+    });
+  }
+
+  const msg = {
+    to: process.env.EMAIL_USER, // Tự gửi cho chính mình để test
+    from: process.env.EMAIL_USER,
+    subject: "Test SendGrid Email Config",
+    text: "Nếu bạn nhận được email này, cấu hình SendGrid của bạn đang hoạt động tốt trên Render!",
+  };
+
   try {
-    await transporter.verify();
-    res.json({ 
-      status: "success", 
-      message: "SMTP connection verified ✓",
-      config: {
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        user: process.env.EMAIL_USER,
-        connectionTimeout: "60s"
-      }
+    const info = await sgMail.send(msg);
+    res.json({
+      status: "success",
+      message: "SendGrid API call successful ✓ Check your inbox.",
+      info: info,
     });
-    console.log("✓ SMTP connection verified successfully");
+    console.log("✓ SendGrid configuration working successfully");
   } catch (error) {
-    res.status(500).json({ 
-      status: "error", 
+    res.status(500).json({
+      status: "error",
       message: error.message,
-      code: error.code,
-      help: "Check RENDER_TROUBLESHOOTING.md for solutions"
+      body: error.response ? error.response.body : null,
+      help: "Check if the Sender Identity is verified in SendGrid, or check if Render Environment Variable is correct.",
     });
-    console.error("✗ SMTP verification failed:", error.message);
+    console.error("✗ SendGrid verification failed:", error.message);
+    if (error.response) console.error(error.response.body);
   }
 });
 
